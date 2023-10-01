@@ -1,33 +1,61 @@
-// create web server
-// url: /comments/new
-// method: POST
-// body: comment
-// response: {success: true/false}
+// Create web server
 
-// url: /comments
-// method: GET
-// response: [{id: 1, comment: 'hello world'}, ...]
+var express = require('express');
+var router = express.Router();
+var Comment = require('../models/Comment');
+var jwt = require('jsonwebtoken');
+var config = require('../config');
+var mongoose = require('mongoose');
 
-// url: /comments/1
-// method: GET
-// response: {id: 1, comment: 'hello world'}
+// Get all comments
+router.get('/', function(req, res) {
+	Comment.find({}, function(err, comments) {
+		if (err) {
+			console.log(err);
+			res.status(400).send(err);
+		} else {
+			res.status(200).json(comments);
+		}
+	});
+});
 
-// url: /comments/1
-// method: DELETE
-// response: {success: true/false}
+// Get single comment
+router.get('/:id', function(req, res) {
+	var id = req.params.id;
+	Comment.findById(id, function(err, comment) {
+		if (err) {
+			console.log(err);
+			res.status(400).send(err);
+		} else {
+			res.status(200).json(comment);
+		}
+	});
+});
 
-// url: /comments/1
-// method: PUT
-// body: comment
-// response: {success: true/false}
+// Create comment
+router.post('/', function(req, res) {
+	var comment = new Comment(req.body);
+	comment.save(function(err, comment) {
+		if (err) {
+			console.log(err);
+			res.status(400).send(err);
+		} else {
+			res.status(201).json(comment);
+		}
+	});
+});
 
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const uuidv4 = require('uuid/v4');
+// Delete comment
+router.delete('/:id', function(req, res) {
+	var id = req.params.id;
+	Comment.findByIdAndRemove(id, function(err, comment) {
+		if (err) {
+			console.log(err);
+			res.status(400).send(err);
+		} else {
+			res.status(200).json(comment);
+		}
+	});
+});
 
-const app = express();
-const port = 3000;
-
-app.use(bodyParser.json());
-app.use(cors());
+module.exports = router;
